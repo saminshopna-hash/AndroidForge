@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123b72">
+<title>BM Telecom Manager</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:#172033;font-family:system-ui,"Noto Sans Bengali",sans-serif}
+header{background:#123b72;color:white;padding:18px 16px}header h1{margin:0;font-size:22px}header small{opacity:.85}
+nav{display:flex;gap:6px;overflow:auto;padding:10px;background:#fff;position:sticky;top:0}
+nav button{border:0;background:#e8eef8;padding:10px 12px;border-radius:10px;white-space:nowrap;font-weight:600;color:#123b72}
+nav button.active{background:#123b72;color:white}
+main{padding:14px;max-width:720px;margin:auto}.card{background:white;padding:14px;border-radius:14px;box-shadow:0 2px 10px #12294a0b;margin-bottom:12px}
+h2{font-size:18px;margin:0 0 12px}label{display:block;font-size:14px;margin:9px 0 4px;color:#4a5568}
+input,select,textarea{width:100%;padding:11px;border:1px solid #d5ddeb;border-radius:9px;font:inherit;background:white}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.btn{background:#1768c5;color:white;border:0;padding:12px;border-radius:10px;font-weight:700;width:100%;margin-top:12px}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sum{background:#eaf2ff;border-radius:12px;padding:12px}.sum b{display:block;font-size:20px;margin-top:5px}
+.item{border:1px solid #e5eaf2;padding:10px;border-radius:10px;margin-top:8px}.muted{color:#667085;font-size:13px}.danger{background:#fff0f0;color:#b42318;border:0;padding:5px 9px;border-radius:7px}
+.hidden{display:none}.listhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+</style></head>
+<body>
+<header><h1>📱 BM Telecom Manager</h1><small>আপনার দোকানের সহজ হিসাব</small></header>
+<nav>
+<button class="active" data-tab="home">হোম</button><button data-tab="sales">বিক্রি</button><button data-tab="due">বাকি</button><button data-tab="repair">সার্ভিসিং</button>
+</nav>
+<main>
+<section id="home">
+<div class="card"><h2>আজকের সারাংশ</h2><div class="summary"><div class="sum">আজকের বিক্রি<b id="todaySales">৳০</b></div><div class="sum">আজ নতুন বাকি<b id="todayDue">৳০</b></div></div></div>
+<div class="card"><h2>দ্রুত কাজ</h2><p class="muted">নিচের মেনু থেকে বিক্রি, বাকি অথবা সার্ভিসিং যোগ করুন। তথ্য এই ব্রাউজারে সংরক্ষিত থাকবে।</p></div>
+<div class="card"><h2>সতর্কতা</h2><p class="muted">এই প্রাথমিক সংস্করণে ডাটা ফোনের ব্রাউজারে থাকে। ফোন বদলানো/ব্রাউজার ডাটা মুছলে হিসাব হারাতে পারেন—নিয়মিত ব্যাকআপ রাখুন।</p><button class="btn" onclick="backup()">ডাটা ব্যাকআপ ডাউনলোড</button><label>ব্যাকআপ ফাইল থেকে ফিরিয়ে আনুন</label><input type="file" accept=".json" onchange="restore(event)"></div>
+</section>
+<section id="sales" class="hidden">
+<div class="card"><h2>🛒 নতুন বিক্রি লিখুন</h2><label>তারিখ</label><input id="sdate" type="date"><label>পণ্যের নাম</label><input id="sname" placeholder="যেমন: চার্জার"><div class="row"><div><label>পরিমাণ</label><input id="sqty" type="number" value="1" min="1"></div><div><label>মোট টাকা</label><input id="samount" type="number" placeholder="৳"></div></div><label>পেমেন্ট</label><select id="spay"><option>নগদ</option><option>বিকাশ</option><option>নগদ (Nagad)</option><option>কার্ড</option><option>বাকি</option><option>মিশ্র</option></select><label>নোট (ঐচ্ছিক)</label><input id="snote" placeholder="অতিরিক্ত তথ্য"><button class="btn" onclick="addSale()">বিক্রি সংরক্ষণ</button></div>
+<div class="card"><div class="listhead"><h2>বিক্রির তালিকা</h2><input id="sfilter" type="date" onchange="render()" style="max-width:155px"></div><div id="salesList"></div></div>
+</section>
+<section id="due" class="hidden">
+<div class="card"><h2>💰 নতুন বাকি লিখুন</h2><label>তারিখ</label><input id="ddate" type="date"><label>কাস্টমারের নাম</label><input id="dname" placeholder="নাম"><label>মোবাইল নম্বর</label><input id="dphone" inputmode="tel" placeholder="01XXXXXXXXX"><div class="row"><div><label>বাকি টাকা</label><input id="damount" type="number" placeholder="৳"></div><div><label>পরিশোধ (এখন)</label><input id="dpaid" type="number" value="0"></div></div><label>কারণ/নোট</label><input id="dnote" placeholder="কী বাবদ বাকি"><button class="btn" onclick="addDue()">বাকি সংরক্ষণ</button></div>
+<div class="card"><h2>বাকির তালিকা</h2><input id="dfilter" type="date" onchange="render()"><div id="dueList"></div></div>
+</section>
+<section id="repair" class="hidden">
+<div class="card"><h2>🔧 মোবাইল জমা নিন</h2><label>জমার তারিখ</label><input id="rdate" type="date"><label>কাস্টমারের নাম</label><input id="rname" placeholder="নাম"><label>মোবাইল নম্বর</label><input id="rphone" inputmode="tel" placeholder="01XXXXXXXXX"><label>ফোনের মডেল</label><input id="rmodel" placeholder="যেমন: Redmi 9"><label>ফোনের সমস্যা</label><textarea id="rproblem" rows="2" placeholder="চার্জ হয় না..."></textarea><div class="row"><div><label>সম্ভাব্য খরচ</label><input id="rprice" type="number" placeholder="৳"></div><div><label>অগ্রিম</label><input id="radvance" type="number" value="0"></div></div><label>অবস্থা</label><select id="rstatus"><option>কাজ বাকি</option><option>কাজ চলছে</option><option>কাজ সম্পন্ন</option><option>ডেলিভারি হয়েছে</option></select><button class="btn" onclick="addRepair()">সার্ভিসিং সংরক্ষণ</button></div>
+<div class="card"><h2>সার্ভিসিং রেকর্ড</h2><input id="rfilter" type="date" onchange="render()"><div id="repairList"></div></div>
+</section>
+</main>
+<script>
+const today=new Date().toISOString().slice(0,10);
+['sdate','ddate','rdate'].forEach(x=>document.getElementById(x).value=today);
+let db=JSON.parse(localStorage.getItem('bmtelecom_db')||'{"sales":[],"dues":[],"repairs":[]}');
+function save(){localStorage.setItem('bmtelecom_db',JSON.stringify(db));render()}
+function money(n){return '৳'+Number(n||0).toLocaleString('bn-BD')}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');['home','sales','due','repair'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==b.dataset.tab));render()});
+function addSale(){let name=sname.value.trim(),amt=+samount.value;if(!name||amt<=0)return alert('পণ্যের নাম ও টাকা লিখুন');db.sales.unshift({id:Date.now(),date:sdate.value,name,qty:+sqty.value||1,amount:amt,pay:spay.value,note:snote.value});sname.value=samount.value=snote.value='';save();alert('বিক্রি সংরক্ষণ হয়েছে')}
+function addDue(){let name=dname.value.trim(),amt=+damount.value;if(!name||amt<=0)return alert('নাম ও বাকি টাকা লিখুন');db.dues.unshift({id:Date.now(),date:ddate.value,name,phone:dphone.value,amount:amt,paid:+dpaid.value||0,note:dnote.value});dname.value=dphone.value=damount.value=dnote.value='';dpaid.value=0;save();alert('বাকি সংরক্ষণ হয়েছে')}
+function addRepair(){if(!rname.value.trim()||!rmodel.value.trim())return alert('কাস্টমারের নাম ও মডেল লিখুন');db.repairs.unshift({id:Date.now(),date:rdate.value,name:rname.value,phone:rphone.value,model:rmodel.value,problem:rproblem.value,price:+rprice.value||0,advance:+radvance.value||0,status:rstatus.value});rname.value=rphone.value=rmodel.value=rproblem.value=rprice.value='';radvance.value=0;save();alert('সার্ভিসিং সংরক্ষণ হয়েছে')}
+function del(type,id){if(confirm('এই রেকর্ড মুছবেন?')){db[type]=db[type].filter(x=>x.id!==id);save()}}
+function render(){let sf=sfilter.value,df=dfilter.value,rf=rfilter.value;let sl=db.sales.filter(x=>!sf||x.date===sf),dl=db.dues.filter(x=>!df||x.date===df),rl=db.repairs.filter(x=>!rf||x.date===rf);
+salesList.innerHTML=sl.map(x=>`<div class=item><b>${x.name}</b> ×${x.qty} — ${money(x.amount)}<div class=muted>${x.date} · ${x.pay} ${x.note||''}</div><button class=danger onclick="del('sales',${x.id})">মুছুন</button></div>`).join('')||'<p class=muted>কোন বিক্রি নেই</p>';
+dueList.innerHTML=dl.map(x=>`<div class=item><b>${x.name}</b> — বাকি ${money(x.amount-x.paid)}<div class=muted>${x.date} · ${x.phone||''} · মোট ${money(x.amount)} / পরিশোধ ${money(x.paid)} ${x.note||''}</div><button onclick="payDue(${x.id})">টাকা জমা</button> <button class=danger onclick="del('dues',${x.id})">মুছুন</button></div>`).join('')||'<p class=muted>কোন বাকি নেই</p>';
+repairList.innerHTML=rl.map(x=>`<div class=item><b>${x.name} · ${x.model}</b><div>${x.problem||'সমস্যা লেখা নেই'}</div><div class=muted>${x.date} · ${x.phone||''} · ${money(x.price)} · অগ্রিম ${money(x.advance)} · ${x.status}</div><button onclick="statusRepair(${x.id})">স্ট্যাটাস পরিবর্তন</button> <button class=danger onclick="del('repairs',${x.id})">মুছুন</button></div>`).join('')||'<p class=muted>কোন ফোন জমা নেই</p>';
+todaySales.textContent=money(db.sales.filter(x=>x.date===today).reduce((a,x)=>a+x.amount,0));todayDue.textContent=money(db.dues.filter(x=>x.date===today).reduce((a,x)=>a+x.amount,0))}
+function payDue(id){let x=db.dues.find(x=>x.id===id),v=prompt('কত টাকা জমা দিলেন?', '0');if(v!==null&&+v>=0){x.paid+=+v;save()}}
+function statusRepair(id){let x=db.repairs.find(x=>x.id===id),opts=['কাজ বাকি','কাজ চলছে','কাজ সম্পন্ন','ডেলিভারি হয়েছে'],v=prompt('নতুন স্ট্যাটাস লিখুন:\\n'+opts.join('\\n'),x.status);if(opts.includes(v)){x.status=v;save()}}
+function backup(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='BM-Telecom-backup-'+today+'.json';a.click();URL.revokeObjectURL(a.href)}
+function restore(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(x.sales&&x.dues&&x.repairs){db=x;save();alert('ব্যাকআপ ফিরিয়ে আনা হয়েছে')}else alert('ফাইল সঠিক নয়')}catch{alert('ফাইল পড়া যায়নি')}};r.readAsText(f)}
+render();
+</script></body></html>
